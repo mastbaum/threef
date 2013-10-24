@@ -1,5 +1,6 @@
-CFLAGS = -I. $(shell root-config --cflags)
+CFLAGS = -Iinclude $(shell root-config --cflags)
 LFLAGS = $(shell root-config --libs)
+CCFLAGS = -Wno-deprecated-declarations
 CC = g++
 OBJ_DIR = build
 SOURCES = $(wildcard src/*.cpp)
@@ -32,8 +33,8 @@ include/%: %
 vpath %.h src
 
 $(OBJ_DIR)/%.o: src/%.cpp
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CCFLAGS) -c -o $@ $< $(CFLAGS)
 
 $(EXE): $(OBJECTS)
-	$(CC) -o $@ $^ $(CFLAGS) $(LFLAGS)
+	$(CC) $(CCFLAGS) -o $@ $^ $(CFLAGS) $(LFLAGS)
 

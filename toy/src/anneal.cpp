@@ -8,9 +8,9 @@
 #include <nll.h>
 #include <mcmc.h>
 
-TNtuple* mcmc(std::vector<TH1F*> pdfs, std::vector<std::string> names,
-              std::vector<float> expectations, std::vector<float> constraints,
-              std::vector<float> data, size_t steps, float jump) {
+TNtuple* anneal(std::vector<TH1F*> pdfs, std::vector<std::string> names,
+                std::vector<float> expectations, std::vector<float> constraints,
+                std::vector<float> data, size_t steps, float jump) {
   unsigned long accepted = 0;
   unsigned long total = 0;
 
@@ -27,6 +27,9 @@ TNtuple* mcmc(std::vector<TH1F*> pdfs, std::vector<std::string> names,
   TNtuple* lspace = new TNtuple("lspace", "Likelihood space", varlist.c_str());
 
   for (size_t istep=0; istep<steps; istep++) {
+      // Temperature
+      float t = TMath::Power(0.999, 1.0 * istep);
+
       // Jump
       std::vector<float> new_norms;
       for (size_t i=0; i<norms.size(); i++) {
@@ -46,7 +49,7 @@ TNtuple* mcmc(std::vector<TH1F*> pdfs, std::vector<std::string> names,
           accept = true;
       }
       else {
-          alpha = TMath::Exp(lcurrent - lnew);
+          alpha = TMath::Exp((lcurrent - lnew) / t);
           if (gRandom->Uniform() <= alpha) {
               accept = true;
           }
@@ -70,7 +73,6 @@ TNtuple* mcmc(std::vector<TH1F*> pdfs, std::vector<std::string> names,
 
       total++;
   }
-  std::cout << "mcmc: Accept ratio: " << 1.0 * accepted / total << std::endl;
 
   return lspace;
 }

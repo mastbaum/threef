@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <TH1F.h>
 #include <TMath.h>
+#include <nll.h>
 
 double nll(std::vector<TH1F*> pdfs, std::vector<float> norms, 
            std::vector<float> expectations, std::vector<float> constraints,
