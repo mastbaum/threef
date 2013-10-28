@@ -1,5 +1,5 @@
-CFLAGS = -Iinclude $(shell root-config --cflags)
-LFLAGS = $(shell root-config --libs)
+CFLAGS = -Iinclude $(shell root-config --cflags) -I../../include
+LFLAGS = $(shell root-config --libs) -L../../lib -lFFF
 CCFLAGS = -Wno-deprecated-declarations
 CC = g++
 OBJ_DIR = build

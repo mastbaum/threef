@@ -1,11 +1,11 @@
 #include <TRandom.h>
-#include <TH1F.h>
+#include <TH1D.h>
 #include <pdfs.h>
 
 namespace pdfs {
 
-TH1F* make_flat(float min, float max, int bins) {
-  TH1F* h = new TH1F("h", "", bins, min, max);
+TH1D* make_flat(double min, double max, int bins) {
+  TH1D* h = new TH1D("h", "", bins, min, max);
   h->SetDirectory(NULL);
   h->SetXTitle("Energy");
   h->SetYTitle("Counts per bin");
@@ -20,8 +20,8 @@ TH1F* make_flat(float min, float max, int bins) {
   return h;
 }
 
-TH1F* make_gaussian(float min, float max, float mean, float sigma, int bins) {
-  TH1F* h = new TH1F("hs", "Energy spectrum", bins, min, max);
+TH1D* make_gaussian(double min, double max, double mean, double sigma, int bins) {
+  TH1D* h = new TH1D("hs", "Energy spectrum", bins, min, max);
   h->SetDirectory(NULL);
   for (size_t i=0; i<500000; i++) {
       h->Fill(gRandom->Gaus(mean, sigma));

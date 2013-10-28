@@ -21,6 +21,13 @@ class FitWrapper : private ROOT::Minuit2::FCNBase{
     std::vector<double> SAnnealFit(const std::vector<double>& initparams, size_t steps=500000, float burnin=0.1, float jump=0.1);
 
     TNtuple* MCMCMapLikelihood(const std::vector<double>& initparams, size_t steps=500000, float burnin=0.1, float jump=0.1);
+
+
+    std::vector<std::pair<double, double> > GetFrequentistIntervals(std::vector<std::pair<double, double> > param_limits,
+                        std::vector<size_t> grid_steps,
+                        std::vector<double> initparams,
+                        double cl = 0.9,
+                        size_t nfake = 100) {
  
   protected:
       double operator()( const std::vector<double>& lParams ) const {
