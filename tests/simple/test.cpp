@@ -10,38 +10,51 @@
 
 std::vector<double> truth(1);
 
-double nll(const std::vector<double>& params)
+class MyData : public FFF::DataWrapper{
+  public:
+    MyData(double _truth){truth = _truth;};
+    ~MyData(){};
+
+    double truth;
+};
+
+double myNLL(const std::vector<double>& params, const FFF::DataWrapper* data)
 {
-  if (params[0] < 0 || params[0] > truth[0]*truth[0])
+  const MyData* mydata = dynamic_cast<const MyData*> (data);
+  
+  if (params[0] < 0 || params[0] > mydata->truth*mydata->truth)
     return 1e9;
-  return -1.0*TMath::Log(1-(params[0]-truth[0])*(params[0]-truth[0])/(truth[0]*truth[0]));
+  return -1.0*TMath::Log(1-(params[0]-mydata->truth)*(params[0]-mydata->truth)/(mydata->truth*mydata->truth));
 }
 
-void mc(const std::vector<double>& params)
+FFF::DataWrapper* myMC(const std::vector<double>& params)
 {
-  truth[0] = params[0];
+  MyData* data = new MyData(params[0]);
+  return data;
 }
 
 int main(){
 
-  truth[0] = 3.0;
-
   std::vector<double> initparams;
   initparams.push_back(5.0);
 
-  FitSimple fit(&nll,&mc);
-  std::vector<double> results = fit.MigradFit(initparams);
-  std::cout << results[0] << " " << results[1] << std::endl;
+  FFF::FitSimple fit(&myNLL,&myMC);
+  FFF::DataWrapper* data = fit.GenerateData(initparams);
+  std::cout << "The correct answer is 5.0, with a likelihood of 0.0" << std::endl;
 
-  TNtuple *lspace = fit.MCMCMapLikelihood(initparams);
+
+  std::vector<double> results = fit.MigradFit(initparams,data);
+  std::cout << "Migrad: " << results[0] << " L=" << results[1] << std::endl;
+
+  TNtuple *lspace = fit.MCMCMapLikelihood(initparams,data);
   TFile f("lspace.root","RECREATE");
   lspace->Write();
   f.Close();
-  results = fit.MCMCFit(initparams);
-  std::cout << results[0] << " " << results[1] << std::endl;
+  results = fit.MCMCFit(initparams,data);
+  std::cout << "MCMC: " << results[0] << " L=" << results[1] << std::endl;
 
-  results = fit.SAnnealFit(initparams);
-  std::cout << results[0] << " " << results[1] << std::endl;
+  results = fit.SAnnealFit(initparams,data);
+  std::cout << "SAnneal: " << results[0] << " L=" << results[1] << std::endl;
 
   return 0;
 
