@@ -21,6 +21,14 @@
 #include <nll.h>
 #include <pdfs.h>
 
+#include <Minuit2/FCNBase.h>
+#include <Minuit2/MnUserParameters.h>
+#include <Minuit2/MnMigrad.h>
+#include <Minuit2/FunctionMinimum.h>
+#include <Minuit2/MnMinos.h>
+
+
+
 int main(int argc, char* argv[]) {
   gErrorIgnoreLevel = kWarning;
   delete gRandom;
@@ -62,7 +70,7 @@ int main(int argc, char* argv[]) {
   nll.SetConstraints(constraints);
 
   std::cout << "Making fake data..." << std::endl;
-  nll.GenerateData(rates);
+  FFF::DataWrapper* data = nll.GenerateData(rates);
 
 
   std::vector<std::pair<double, double> > param_limits;
@@ -73,7 +81,67 @@ int main(int argc, char* argv[]) {
   grid_steps.push_back(20);
   grid_steps.push_back(20);
 
-  nll.GetFrequentistIntervals(param_limits,grid_steps,rates);
+  // Do minuit2 migrad fit and calculate minos errors
+  std::cout << "Calculating migrad fit and Minos errors..." << std::endl;
+  ROOT::Minuit2::FCNBase* migradfunc = nll.GetMinuit2FCNBase(data);
+  std::vector<double> verrors;
+  for (size_t i=0;i<rates.size();i++)
+    verrors.push_back(0.0); //FIXME
+  ROOT::Minuit2::MnUserParameters mnParams(rates,verrors);
+  ROOT::Minuit2::MnMigrad migrad(*migradfunc,mnParams);  
+  ROOT::Minuit2::FunctionMinimum theMin = migrad(); //FIXME maxfcn, tol
+  ROOT::Minuit2::MnUserParameters migradresult = theMin.UserParameters();
+  ROOT::Minuit2::MnMinos minos(*migradfunc,theMin);
+  std::vector<std::pair<double, double> > minoserrors;
+  minoserrors.push_back(minos(0));
+  minoserrors.push_back(minos(1));
+
+
+  std::cout << "Calculating Simulated Annealing fit..." << std::endl;
+  std::vector<double> saresult = nll.SAnnealFit(rates,data,50000,0.1,5);
+
+  std::cout << "Calculating MCMC fit and errors..." << std::endl;
+  std::vector<double> mcmcresult = nll.MCMCFit(rates,data,50000,0.1,5);
+
+  std::cout << "Truth: \t\t" << rates[0] << "\t\t\t\t " << rates[1] << std::endl;
+  std::cout << "Migrad/minos: \t" << migradresult.Params()[0] << " +" << minoserrors[0].second << " -" << -1*minoserrors[0].first;
+  std::cout << "\t " << migradresult.Params()[1] << " +" << minoserrors[1].second << " -" << -1*minoserrors[1].first;
+  std::cout << " L=" << theMin.Fval() << std::endl;
+  std::cout << "SimAnnealing: \t" << saresult[0] << "\t\t\t\t " << saresult[1] << " L=" << saresult[2] << std::endl;
+  std::cout << "MCMC: \t\t" << mcmcresult[0] << "\t\t\t\t " << mcmcresult[1] << " L=" << mcmcresult[2] << std::endl;
+
+  // Make a plot of the data and the best fit
+  MyData *mydata = dynamic_cast<MyData*> (data);
+  TCanvas ca;
+  TH1D hdata("hdata",";Energy;Counts",50,0,10);
+  hdata.Sumw2();
+  for (size_t i=0;i<mydata->events.size();i++)
+    hdata.Fill(mydata->events[i]);
+  hdata.Draw();
+  TH1D hfit("hfit","",50,0,10);
+  for (size_t i=0;i<pdfs.size();i++){
+    pdfs[i]->SetLineColor(i+2);
+    pdfs[i]->DrawNormalized("same",saresult[i]);
+    hfit.Add(pdfs[i],saresult[i]);
+  }
+  hfit.SetLineColor(kBlack);
+  hfit.SetLineStyle(2);
+  hfit.Draw("same");
+  ca.Update();
+  ca.SaveAs("spectra.pdf");
+
+  std::cout << "Mapping out likelihood space..." << std::endl;
+  // Map out the likelihood space with an mcmc
+  TNtuple *lspace = nll.MCMCMapLikelihood(rates,data,50000,0.1,5);
+  TCanvas c;
+  lspace->Draw("b:a>>hlspace(40, 25, 75, 40, 50, 125)", "", "col z");
+  TH2D* hlspace = dynamic_cast<TH2D*>(gDirectory->FindObject("hlspace"));
+  c.SaveAs("lspace.pdf");
+  delete lspace;
+  std::cout << "Done" << std::endl;
+
+
+//  nll.GetFrequentistIntervals(param_limits,grid_steps,rates, data);
   
   return 0;
 }

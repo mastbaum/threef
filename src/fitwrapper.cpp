@@ -21,18 +21,17 @@ namespace FFF
 
   std::vector<double> FitWrapper::MigradFit(const std::vector<double>& initparams, const DataWrapper* data)
   {
-    fMinuitData = data;
+    ROOT::Minuit2::FCNBase* migradfunc = GetMinuit2FCNBase(data);
     std::vector<double> finalParams;
     std::vector<double> verrors;
     for (size_t i=0;i<initparams.size();i++)
       verrors.push_back(0.0); //FIXME
     ROOT::Minuit2::MnUserParameters mnParams(initparams,verrors);
-    ROOT::Minuit2::MnMigrad migrad(*this,mnParams);  
+    ROOT::Minuit2::MnMigrad migrad(*migradfunc,mnParams);  
     ROOT::Minuit2::FunctionMinimum theMin = migrad(); //FIXME maxfcn, tol
     ROOT::Minuit2::MnUserParameters results = theMin.UserParameters();
     finalParams = results.Params();
     finalParams.push_back(theMin.Fval());
-    fMinuitData = NULL;
 
     return finalParams;
   }

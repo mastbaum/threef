@@ -1,11 +1,16 @@
+#ifndef __FITWRAPPER_H__
+#define __FITWRAPPER_H__
+
 #include <vector>
 #include <string>
 
 #include <TNtuple.h>
-#include <Minuit2/FCNBase.h>
+
+#include <MigradFitter.h>
 
 namespace FFF
 {
+
   // This class is just a fancy null pointer
   // You can subclass it with anything, we
   // just want to make sure we can delete it
@@ -18,7 +23,7 @@ namespace FFF
 
 
 
-  class FitWrapper : private ROOT::Minuit2::FCNBase{
+  class FitWrapper {
     public:
       FitWrapper(){};
 
@@ -29,6 +34,7 @@ namespace FFF
 
       void SetParamNames(std::vector<std::string> paramNames){fParamNames = paramNames;};
 
+      ROOT::Minuit2::FCNBase* GetMinuit2FCNBase(const DataWrapper* data){return new MigradFitter(this,data);};
 
       std::vector<double> MigradFit(const std::vector<double>& initparams, const DataWrapper* data);
       std::vector<double> MCMCFit(const std::vector<double>& initparams, const DataWrapper* data, size_t steps=500000, float burnin=0.1, float jump=0.1);
@@ -45,12 +51,8 @@ namespace FFF
           size_t nfake = 100);
 
     protected:
-      double operator()( const std::vector<double>& lParams ) const {
-        return GetNLL(lParams, fMinuitData);
-      };
-      double Up() const { return 0.5; }
-
-      const DataWrapper* fMinuitData; 
       std::vector<std::string> fParamNames;
   };
 }
+
+#endif

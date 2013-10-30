@@ -4,12 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <TRandom.h>
-#include <generator.h>
 #include <nll.h>
 
-void NLL::GenerateData(const std::vector<double>& params)
+FFF::DataWrapper* NLL::GenerateData(const std::vector<double>& params) const
 {  
-  fData.clear();
+  MyData *data = new MyData();
   for (size_t i=0; i<params.size(); i++) {
     float rate;
     if (fConstraints[i] > 0) {
@@ -20,14 +19,17 @@ void NLL::GenerateData(const std::vector<double>& params)
     }
     int n = gRandom->Poisson(rate);
     for (int j=0; j<n; j++) {
-      fData.push_back(fPDFs[i]->GetRandom());
+      data->events.push_back(fPDFs[i]->GetRandom());
     }
   }
+  return data;
 }
 
 
-double NLL::GetNLL(const std::vector<double>& params) const
+double NLL::GetNLL(const std::vector<double>& params, const FFF::DataWrapper* data) const
 {
+    const MyData *mydata = dynamic_cast<const MyData *> (data);
+
     double result = 0;
     for (size_t i=0; i<params.size(); i++) {
         // hard prior
@@ -45,10 +47,10 @@ double NLL::GetNLL(const std::vector<double>& params) const
     }
 
     // L -= sum over events ( log ( sum over pdfs ( N_j P_j(x_i)) ) )
-    for (int i=0; i<fData.size(); i++) {
+    for (int i=0; i<mydata->events.size(); i++) {
         double s = 0;
         for (size_t j=0; j<params.size(); j++) {
-            s += params[j] * fPDFs[j]->Interpolate(fData[i]);
+            s += params[j] * fPDFs[j]->Interpolate(mydata->events[i]);
         }
         if (s != s) {
             s = 1e-20;
