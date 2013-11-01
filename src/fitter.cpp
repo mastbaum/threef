@@ -5,6 +5,7 @@
 #include <Minuit2/MnMigrad.h>
 #include <Minuit2/FunctionMinimum.h>
 #include <aurore/fitter.h>
+#include <aurore/likelihood.h>
 #include <aurore/migrad.h>
 #include <aurore/sampler.h>
 
@@ -86,8 +87,7 @@ Fitter::markov(const std::vector<double>& initial_params,
   best_fit->value = global_nll_value;
   best_fit->parameters = global_nll_params;
 
-  likelihood_space = static_cast<LikelihoodSpace*>(NULL);
-  // likelihood_space = new LikelihoodSpace(samples);
+  likelihood_space = new LikelihoodSpace(samples, this->param_names);
 
   return best_fit;
 }

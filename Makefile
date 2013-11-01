@@ -9,12 +9,6 @@ INCLUDES := $(shell find ./src -name '*.h')
 INCLUDES_DST = $(addprefix include/, $(subst ./src/,, $(INCLUDES)))# $(notdir $(INCLUDES))))
 LIB = lib/libaurore.so
 
-EMPTY :=
-NUL := $(EMPTY)$(EMPTY)
-
-$(warning $(INCLUDES))
-$(warning $(INCLUDES_DST))
-
 ifndef ROOTSYS
 $(error ROOTSYS is not set)
 endif
@@ -22,7 +16,7 @@ endif
 all: dirs includes $(OBJECTS) $(LIB)
 
 clean:
-	-$(RM) include/aurore/* build/* lib/* $(EXE)
+	-$(RM) -r include/aurore/* build/* lib/* $(EXE)
 
 dirs:
 	@test -d include/aurore || mkdir -p include/aurore
