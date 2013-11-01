@@ -3,11 +3,17 @@ LFLAGS = $(shell root-config --libs) -lMinuit2
 CCFLAGS = -Wno-deprecated-declarations
 CC = g++
 OBJ_DIR = build
-SOURCES = $(wildcard src/*.cpp)
+SOURCES := $(shell find ./src -name '*.cpp')
 OBJECTS = $(SOURCES:src/%.cpp=$(OBJ_DIR)/%.o)
-INCLUDES = $(wildcard src/*.h)
-INCLUDES_DST = $(addprefix include/, $(notdir $(INCLUDES)))
+INCLUDES := $(shell find ./src -name '*.h')
+INCLUDES_DST = $(addprefix include/, $(subst ./src/,, $(INCLUDES)))# $(notdir $(INCLUDES))))
 LIB = lib/libaurore.so
+
+EMPTY :=
+NUL := $(EMPTY)$(EMPTY)
+
+$(warning $(INCLUDES))
+$(warning $(INCLUDES_DST))
 
 ifndef ROOTSYS
 $(error ROOTSYS is not set)
@@ -19,19 +25,20 @@ clean:
 	-$(RM) include/aurore/* build/* lib/* $(EXE)
 
 dirs:
-	test -d include/aurore || mkdir -p include/aurore
-	test -d build || mkdir build
-	#test -d bin || mkdir bin
-	test -d lib || mkdir lib
+	@test -d include/aurore || mkdir -p include/aurore
+	@test -d build || mkdir build
+	@test -d lib || mkdir lib
 
 .PHONY: includes
 
 includes: dirs $(INCLUDES_DST)
 
 include/%: %
-	cp $^ include/aurore/
+	@test -d $(dir $(subst src,include/aurore,$^)) || mkdir -p $(dir $(subst src,include/aurore,$^))
+	cp -p $^ $(addprefix include/aurore/, $(subst src/,, $^))
 
 vpath %.h src
+vpath samplers/%.h src/samplers
 
 $(OBJ_DIR)/%.o: src/%.cpp
 	$(CC) $(CCFLAGS) -c -o $@ $< $(CFLAGS)

@@ -12,6 +12,10 @@ namespace ROOT {
 
 namespace aurore {
 
+class Sampler;
+
+class LikelihoodSpace {};
+
 /** Generic container for data. */
 class Dataset {
   public:
@@ -23,7 +27,7 @@ class Dataset {
 /** Abstract interface to fitters. */
 class Fitter {
   public:
-    class Result;
+    struct BestFit;
 
     Fitter(std::vector<std::string> _param_names)
         : param_names(_param_names) {}
@@ -33,59 +37,33 @@ class Fitter {
 
     ROOT::Minuit2::FCNBase* get_minuit2_fcn(Dataset* data);
 
-    Fitter::Result* migrad(const std::vector<double>& initial_params,
+    Fitter::BestFit* migrad(const std::vector<double>& initial_params,
                            Dataset* data);
 
-    Fitter::Result* markov(const std::vector<double>& initial_params,
+    Fitter::BestFit* markov(const std::vector<double>& initial_params,
                            Dataset* data,
-                           const size_t steps, const float burnin_fraction);
+                           const Sampler& sampler,
+                           const size_t steps, const float burnin_fraction,
+                           LikelihoodSpace*& likelihood_space);
 
   protected:
     std::vector<std::string> param_names;
 };
 
-class LikelihoodSpace {}; 
 
 /** Results from a fit. */
-class Fitter::Result {
-  public:
-    /** A fitted parameter. */
-    class Parameter {
-      public:
-        Parameter() : best_fit(0), interval(NULL) {}
-        virtual ~Parameter() { delete this->interval; }
-
-        /** Best-fit value of parameter. */
-        void set_best_fit(const double _best_fit) { this->best_fit = _best_fit; }
-        double get_best_fit() const { return this->best_fit; }
-
-        /** A confidence interval, if defined. */
-        void set_interval(const double a, const double b) {
-          delete this->interval;
-          this->interval = new std::pair<double, double>(a, b);
-        }
-        std::pair<double, double>* get_interval() const { return this->interval; }
-
-      protected:
-        double best_fit;  //!< Best-fit value
-        std::pair<double, double>* interval;  //!< Confidence interval
-    };
-
-    Result() : ml(0), likelihood_space(NULL) {}
-    virtual ~Result() { delete likelihood_space; }
-
-    std::vector<Parameter> parameters;  //!< Parameters and uncertainties
-    LikelihoodSpace* likelihood_space;  //!< Full likelihood space
-    double ml;  //!< Value of the NLL at the best-fit point
+struct Fitter::BestFit {
+  std::vector<double> parameters;
+  double value;
 };
 
-
-typedef double (*NLLFunction)(const std::vector<double>&, Dataset*);
-typedef Dataset* (*MCFunction)(const std::vector<double>&);
 
 /** Simple interface to fitting. */
 class FitSimple : public Fitter {
   public:
+    typedef double (*NLLFunction)(const std::vector<double>&, Dataset*);
+    typedef Dataset* (*MCFunction)(const std::vector<double>&);
+
     FitSimple(std::vector<std::string> _param_names, NLLFunction _nll_function, MCFunction _mc_function)
         : Fitter(_param_names), nll_function(_nll_function), mc_function(_mc_function) {}
 
