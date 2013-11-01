@@ -1,4 +1,4 @@
-*.swp
 build
-bin
+lib
 include
+*.swp
