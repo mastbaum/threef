@@ -23,7 +23,7 @@ dirs:
 	@test -d build || mkdir build
 	@test -d lib || mkdir lib
 
-.PHONY: includes
+.PHONY: includes doc
 
 includes: dirs $(INCLUDES_DST)
 
@@ -38,8 +38,11 @@ $(OBJ_DIR)/%.o: src/%.cpp
 	$(CC) $(CCFLAGS) -c -o $@ $< $(CFLAGS)
 
 $(LIB): $(OBJECTS)
-	$(CC) $(CCFLAGS) -shared -o $@ $^ $(CFLAGS) $(LFLAGS)
+	$(CC) $(CCFLAGS) -shared -fPIC -o $@ $^ $(CFLAGS) $(LFLAGS)
 
 #$(EXE): $(OBJECTS)
 #	$(CC) $(CCFLAGS) -o $@ $^ $(CFLAGS) $(LFLAGS)
+
+doc:
+	doxygen doc/Doxyfile
 
