@@ -61,9 +61,10 @@ class LikelihoodSpace {
      * Get a projection.
      *
      * \param name Name of dimension to project out
+     * \param cut ROOT drawing cut
      * \returns ROOT TH1F with projected histogram
      */
-    TH1F* get_projection(std::string name);
+    TH1F* get_projection(std::string name, std::string cut="");
 
     /**
      * Get points within a given distance of the maximum.

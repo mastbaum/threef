@@ -8,6 +8,11 @@
 #include <Minuit2/FunctionMinimum.h>
 #include <Minuit2/MnMinos.h>
 #include <aurore/fitter.h>
+#include <aurore/likelihood.h>
+#include <aurore/neyman.h>
+#include <aurore/sampler.h>
+#include <aurore/samplers/metropolis.h>
+#include <aurore/intervals/bayesian/central.h>
 
 class MyData : public aurore::Dataset {
   public:
@@ -25,7 +30,8 @@ double myNLL(const std::vector<double>& params, aurore::Dataset* data) {
     return 1e9;
   }
 
-  return -1.0 * TMath::Log(1 - TMath::Power((params[0] - mydata->truth) / mydata->truth, 2));
+  return -1.0 * TMath::Log(1 - TMath::Power((params[0] - mydata->truth) /
+                                             mydata->truth, 2));
 }
 
 aurore::Dataset* myMC(const std::vector<double>& params) {
@@ -38,18 +44,18 @@ int main(int argc, char* argv[]) {
 
   aurore::FitSimple fit(param_names, &myNLL, &myMC);
   aurore::Dataset* data = fit.generate_data(initial_params);
-  std::cout << "The correct answer is 5.0, with a likelihood of 0.0" << std::endl;
+  std::cout << "The correct answer is 5.0, with a likelihood of 0.0"
+            << std::endl << std::endl;
 
-  aurore::Fitter::Result* results = fit.migrad(initial_params, data);
-  std::cout << "Migrad: L = " << results->ml << std::endl;
-  for (size_t i=0; i<results->parameters.size(); i++) {
-    std::cout << results->parameters[i].get_best_fit() << ", on ["
-              << results->parameters[i].get_interval()->first << ", "
-              << results->parameters[i].get_interval()->second << "]"
-              << std::endl;
+  // Fit with MIGRAD
+  {
+    aurore::Fitter::BestFit* results = fit.migrad(initial_params, data);
+    std::cout << "migrad: " << results->parameters[0]
+              << ", nll = " << results->value << std::endl;
+    delete results;
   }
 
-  // You can also do normal minuit2 stuff
+  // Use the Minuit2 wrapper to get MINOS errors
   ROOT::Minuit2::FCNBase* migradfunc = fit.get_minuit2_fcn(data);
   std::vector<double> errors(initial_params.size(), 0);
   ROOT::Minuit2::MnUserParameters mn_params(initial_params, errors);
@@ -62,7 +68,26 @@ int main(int argc, char* argv[]) {
   std::cout << "Minos: " << migradresult.Params()[0]
             << " -" << -1 * minos_errors.first
             << " +" << minos_errors.second
-            << std::endl;
+            << std::endl << std::endl;
+
+  // Fit with a Markov Chain Monte Carlo, using the Metropolis algorithm
+  {
+    std::vector<double> jump_sigma(1, 5);
+    aurore::samplers::Metropolis metropolis(jump_sigma);
+    aurore::LikelihoodSpace* lspace;
+    aurore::Fitter::BestFit* results = \
+      fit.markov(initial_params, data, metropolis, 50000, 0.1, lspace);
+    std::cout << "markov: " << results->parameters[0]
+              << ", nll = " << results->value << std::endl;
+
+    // Calculate some intervals
+    aurore::intervals::bayesian::Central central(0.9, lspace);
+    std::pair<double, double> interval = central("a");
+    std::cout << "Bayesian central: " << results->parameters[0]
+              << " -" << results->parameters[0] - interval.first
+              << " +" << interval.second - results->parameters[0]
+              << std::endl;
+  }
 
   return 0;
 }

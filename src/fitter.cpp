@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <Minuit2/FCNBase.h>
 #include <Minuit2/MnUserParameters.h>
@@ -44,6 +45,8 @@ Fitter::markov(const std::vector<double>& initial_params,
                LikelihoodSpace*& likelihood_space) {
   assert(initial_params.size() == this->param_names.size());
 
+  size_t burnin_steps = std::ceil(burnin_fraction * steps);
+
   // Set up the likelihood space sample buffer
   // A vector of (parameter vector, function value) pairs
   std::vector<std::pair<std::vector<double>, double> > samples;
@@ -57,10 +60,15 @@ Fitter::markov(const std::vector<double>& initial_params,
   double current_nll = this->nll(current_params, data);
 
   for (size_t istep=0; istep<steps; istep++) {
-    std::vector<double> new_params = sampler.proposal_jump(current_params);
+    // Throw away burn-in steps
+    if (istep == burnin_steps) {
+      samples.clear();
+    }
+
+    std::vector<double> new_params = sampler.propose_jump(current_params);
     double new_nll = this->nll(new_params, data);
 
-    if (sampler.accept(current_nll, new_nll)) {
+    if (sampler.accept(-current_nll, -new_nll)) {
       accepted++;
       current_params = new_params;
       current_nll = new_nll;
@@ -80,7 +88,7 @@ Fitter::markov(const std::vector<double>& initial_params,
   float accept_fraction = 1.0 * accepted / steps;
   if (accept_fraction < 0.1 || accept_fraction > 0.5) {
     std::cerr << "Fitter::markov: Warning: Questionable MCMC accept ratio "
-              << accept_fraction << std::endl;
+              << "(" << accept_fraction << ")" << std::endl;
   }
 
   Fitter::BestFit* best_fit = new Fitter::BestFit;

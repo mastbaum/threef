@@ -47,6 +47,8 @@ LikelihoodSpace::LikelihoodSpace(
   varlist += "likelihood";
   samples_ntuple = new TNtuple("lspace", "Likelihood space", varlist.c_str());
 
+  this->best_fit.second = 1e9;
+
   for (size_t i=0; i<samples.size(); i++) {
     std::vector<double> params = samples[i].first;
     double l = samples[i].second;
@@ -75,11 +77,11 @@ std::vector<double> LikelihoodSpace::get_best_fit(double& nll) {
   return this->best_fit.first;
 }
 
-TH1F* LikelihoodSpace::get_projection(std::string name) {
+TH1F* LikelihoodSpace::get_projection(std::string name, std::string cut) {
   int default_nbins = 100;
   gEnv->GetValue("Hist.Binning.1D.x", default_nbins);
   gEnv->SetValue("Hist.Binning.1D.x", 10000);
-  this->samples_ntuple->Draw((name + ">>_hp").c_str(), "", "goff");
+  this->samples_ntuple->Draw((name + ">>_hp").c_str(), cut.c_str(), "goff");
   gEnv->SetValue("Hist.Binning.1D.x", default_nbins);
   TH1F* hp = dynamic_cast<TH1F*>(gDirectory->FindObject("_hp"));
   assert(hp);

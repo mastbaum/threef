@@ -11,7 +11,7 @@ class Sampler {
     Sampler() {}
     virtual ~Sampler() {}
 
-    virtual std::vector<double> proposal_jump(const std::vector<double>& coordinates) const = 0;
+    virtual std::vector<double> propose_jump(const std::vector<double>& coordinates) const = 0;
     virtual bool accept(const double current, const double proposed) const = 0;
 };
 

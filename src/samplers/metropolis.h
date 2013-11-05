@@ -11,8 +11,8 @@ class Metropolis : public Sampler {
     Metropolis(std::vector<double> _jump_sigma) : jump_sigma(_jump_sigma) {}
     virtual ~Metropolis() {}
 
-    std::vector<double> propose_jump(const std::vector<double>& coordinates);
-    bool accept(const double current, const double proposed);
+    virtual std::vector<double> propose_jump(const std::vector<double>& coordinates) const;
+    virtual bool accept(const double current, const double proposed) const;
 
   protected:
     std::vector<double> jump_sigma;
