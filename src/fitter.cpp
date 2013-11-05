@@ -9,6 +9,7 @@
 #include <aurore/likelihood.h>
 #include <aurore/migrad.h>
 #include <aurore/sampler.h>
+#include <aurore/samplers/metropolis.h>
 
 namespace aurore {
 
@@ -37,12 +38,14 @@ Fitter::migrad(const std::vector<double>& initial_params, Dataset* data) {
   return best_fit;
 }
 
+
 Fitter::BestFit*
 Fitter::markov(const std::vector<double>& initial_params,
                Dataset* data,
                const Sampler& sampler,
-               const size_t steps, const float burnin_fraction,
-               LikelihoodSpace*& likelihood_space) {
+               LikelihoodSpace*& likelihood_space,
+               const size_t steps,
+               const float burnin_fraction) {
   assert(initial_params.size() == this->param_names.size());
 
   size_t burnin_steps = std::ceil(burnin_fraction * steps);
@@ -98,6 +101,19 @@ Fitter::markov(const std::vector<double>& initial_params,
   likelihood_space = new LikelihoodSpace(samples, this->param_names);
 
   return best_fit;
+}
+
+
+Fitter::BestFit*
+Fitter::markov(const std::vector<double>& initial_params,
+               Dataset* data,
+               std::vector<double> jump_sigma,
+               const size_t steps,
+               const float burnin_fraction) {
+  LikelihoodSpace* lspace;
+  samplers::Metropolis metropolis(jump_sigma);
+  return markov(initial_params, data, metropolis, lspace, steps,
+                burnin_fraction);
 }
 
 }  // namespace aurore

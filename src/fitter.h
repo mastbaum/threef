@@ -78,17 +78,35 @@ class Fitter {
      *
      * \param[in] initial_params Initial guess for parameters
      * \param[in] data The data set to fit
-     * \param[in] sampler The sampler defining how to explore the space
      * \param[in] steps Number of steps in random walk
      * \param[in] burnin_fraction Fraction of initial steps to throw away
+     * \param[in] sampler The sampler defining how to explore the space
      * \param[out] likelihood_space The set of samples from the NLL function
      * \returns The best fit parameters
      */
     Fitter::BestFit* markov(const std::vector<double>& initial_params,
                            Dataset* data,
                            const Sampler& sampler,
-                           const size_t steps, const float burnin_fraction,
-                           LikelihoodSpace*& likelihood_space);
+                           LikelihoodSpace*& likelihood_space,
+                           const size_t steps=50000,
+                           const float burnin_fraction=0.1);
+
+    /**
+     * Fit by mapping out the likelihood space with a Markov Chain MC, using
+     * the default Metropolis algorithm.
+     *
+     * \param[in] initial_params Initial guess for parameters
+     * \param[in] data The data set to fit
+     * \param[in] jump_sigma Width of proposal distribution for each parameter
+     * \param[in] steps Number of steps in random walk
+     * \param[in] burnin_fraction Fraction of initial steps to throw away
+     * \returns The best fit parameters
+     */
+    Fitter::BestFit* markov(const std::vector<double>& initial_params,
+                           Dataset* data,
+                           std::vector<double> jump_sigma,
+                           const size_t steps=50000,
+                           const float burnin_fraction=0.1);
 
   protected:
     std::vector<std::string> param_names;  //!< Names of the fit parameters

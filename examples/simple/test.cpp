@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     aurore::samplers::Metropolis metropolis(jump_sigma);
     aurore::LikelihoodSpace* lspace;
     aurore::Fitter::BestFit* results = \
-      fit.markov(initial_params, data, metropolis, 50000, 0.1, lspace);
+      fit.markov(initial_params, data, metropolis, lspace);
     std::cout << "markov: " << results->parameters[0]
               << ", nll = " << results->value << std::endl;
 
