@@ -2,3 +2,4 @@ build
 lib
 include
 *.swp
+*.o

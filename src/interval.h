@@ -8,14 +8,13 @@ class LikelihoodSpace;
 /** Abstract base for interval-computing functors. */
 class Interval {
   public:
-    Interval(float _cl, LikelihoodSpace* _likelihood_space)
-        : cl(_cl), likelihood_space(_likelihood_space) {}
+    Interval(LikelihoodSpace* _likelihood_space)
+        : likelihood_space(_likelihood_space) {}
     virtual ~Interval() {}
 
-    virtual std::pair<double, double> operator()(std::string param) = 0;
+    virtual std::pair<double, double> operator()(float cl, std::string param) = 0;
 
   protected:
-    float cl;  //!< Confidence level
     LikelihoodSpace* likelihood_space;
 };
 

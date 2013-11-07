@@ -43,9 +43,9 @@ Fitter::BestFit*
 Fitter::markov(const std::vector<double>& initial_params,
                Dataset* data,
                const Sampler& sampler,
-               LikelihoodSpace*& likelihood_space,
                const size_t steps,
-               const float burnin_fraction) {
+               const float burnin_fraction,
+               LikelihoodSpace** likelihood_space) {
   assert(initial_params.size() == this->param_names.size());
 
   size_t burnin_steps = std::ceil(burnin_fraction * steps);
@@ -98,7 +98,9 @@ Fitter::markov(const std::vector<double>& initial_params,
   best_fit->value = global_nll_value;
   best_fit->parameters = global_nll_params;
 
-  likelihood_space = new LikelihoodSpace(samples, this->param_names);
+  if (likelihood_space){
+    (*likelihood_space) = new LikelihoodSpace(samples, this->param_names);
+  }
 
   return best_fit;
 }
@@ -112,8 +114,8 @@ Fitter::markov(const std::vector<double>& initial_params,
                const float burnin_fraction) {
   LikelihoodSpace* lspace;
   samplers::Metropolis metropolis(jump_sigma);
-  return markov(initial_params, data, metropolis, lspace, steps,
-                burnin_fraction);
+  return markov(initial_params, data, metropolis, steps,
+                burnin_fraction, &lspace);
 }
 
 }  // namespace aurore

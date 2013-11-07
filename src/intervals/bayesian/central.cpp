@@ -12,7 +12,7 @@ namespace aurore {
   namespace intervals {
     namespace bayesian {
 
-std::pair<double, double> Central::operator()(std::string param) {
+std::pair<double, double> Central::operator()(float cl, std::string param) {
   std::vector<std::pair<std::vector<double>, double> > samples = \
     this->likelihood_space->get_samples();
 
@@ -30,7 +30,7 @@ std::pair<double, double> Central::operator()(std::string param) {
   std::sort(samples.begin(), samples.end(),
             LikelihoodSpace::ParamSorter(param, names));
 
-  float tail = (1.0 - this->cl) / 2;
+  float tail = (1.0 - cl) / 2;
 
   double lower = samples[std::floor(tail * samples.size())].first[param_index];
 

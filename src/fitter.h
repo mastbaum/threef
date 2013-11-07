@@ -87,9 +87,9 @@ class Fitter {
     Fitter::BestFit* markov(const std::vector<double>& initial_params,
                            Dataset* data,
                            const Sampler& sampler,
-                           LikelihoodSpace*& likelihood_space,
                            const size_t steps=50000,
-                           const float burnin_fraction=0.1);
+                           const float burnin_fraction=0.1,
+                           LikelihoodSpace** likelihood_space = 0);
 
     /**
      * Fit by mapping out the likelihood space with a Markov Chain MC, using

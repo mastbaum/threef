@@ -17,23 +17,23 @@ namespace aurore {
   */
 class LikelihoodRatio : public Interval {
   public:
-    LikelihoodRatio(float _cl, size_t _n_fake, Dataset* _data,
+    LikelihoodRatio(size_t _n_fake, Dataset* _data,
                     LikelihoodSpace* _likelihood_space, Fitter* _fitter)
-        : Interval(_cl, _likelihood_space),
+        : Interval(_likelihood_space),
           fitter(_fitter), data(_data), n_fake(_n_fake) {}
 
     virtual ~LikelihoodRatio() {}
 
-    virtual std::pair<double, double> operator()(std::string param);
+    virtual std::pair<double, double> operator()(float cl, std::string param);
 
   protected:
     virtual double find_boundary(size_t param_index,                       
                                  std::pair<double, double> range,          
-                                 double tolerance);
+                                 double tolerance, float cl);
 
-    virtual double delta_r(std::vector<double> params); 
+    virtual double delta_r(float cl, std::vector<double> params); 
 
-    virtual double get_critical_ratio(std::vector<double> params);
+    virtual double get_critical_ratio(float cl, std::vector<double> params);
 
     Dataset* data;
     Fitter* fitter;

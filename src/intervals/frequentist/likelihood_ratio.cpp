@@ -16,7 +16,7 @@ namespace aurore {
   namespace intervals {
     namespace frequentist {
 
-std::pair<double, double> LikelihoodRatio::operator()(std::string param) {
+std::pair<double, double> LikelihoodRatio::operator()(float cl, std::string param) {
   std::vector<std::pair<std::vector<double>, double> > samples = \
     this->likelihood_space->get_samples();
 
@@ -41,13 +41,13 @@ std::pair<double, double> LikelihoodRatio::operator()(std::string param) {
     std::make_pair<double, double>(parameter_extrema.first,
                                    best_fit[param_index]);
 
-  double lower = find_boundary(param_index, lower_half, 1e-4);
+  double lower = find_boundary(param_index, lower_half, 1e-4, cl);
 
   std::pair<double, double> upper_half = \
     std::make_pair<double, double>(best_fit[param_index],
                                    parameter_extrema.second);
 
-  double upper = find_boundary(param_index, upper_half, 1e-4);
+  double upper = find_boundary(param_index, upper_half, 1e-4, cl);
 
   return std::make_pair<double, double>(lower, upper);
 }
@@ -55,7 +55,7 @@ std::pair<double, double> LikelihoodRatio::operator()(std::string param) {
 
 double LikelihoodRatio::find_boundary(size_t param_index,
                                       std::pair<double, double> range,
-                                      double tolerance) {
+                                      double tolerance, float cl) {
   double ml;
   std::vector<double> params = this->likelihood_space->get_best_fit(ml);
 
@@ -63,11 +63,11 @@ double LikelihoodRatio::find_boundary(size_t param_index,
   double delta = (range.second - range.first) / 2;
   params[param_index] = x;
 
-  double dr = delta_r(params);
+  double dr = delta_r(cl, params);
   double drc = dr + 1;
   while (delta > tolerance || std::abs(dr - drc) > tolerance) {
     params[param_index] = x;
-    drc = delta_r(params);
+    drc = delta_r(cl, params);
     std::cout << "--> " << params[0] << ": " << dr << " " << drc << std::endl;
 
     // Check if the value has changed sign
@@ -85,20 +85,20 @@ double LikelihoodRatio::find_boundary(size_t param_index,
 }
 
 
-double LikelihoodRatio::delta_r(std::vector<double> params) {
+double LikelihoodRatio::delta_r(float cl, std::vector<double> params) {
   double ld = this->fitter->nll(params, this->data);
 
   double lm;
   this->likelihood_space->get_best_fit(lm);
 
   double rd = 2.0 * (ld - lm);
-  double rc = get_critical_ratio(params);
+  double rc = get_critical_ratio(cl, params);
   std::cout << "    rd=" << rd << " rc=" << rc << std::endl;
 
   return rc - rd;
 }
 
-double LikelihoodRatio::get_critical_ratio(std::vector<double> params) {
+double LikelihoodRatio::get_critical_ratio(float cl, std::vector<double> params) {
   double tolerance = 1e-5;
   
   std::vector<double> rs;
@@ -123,7 +123,7 @@ double LikelihoodRatio::get_critical_ratio(std::vector<double> params) {
     rs.push_back(rf);
 
     std::sort(rs.begin(), rs.end());
-    size_t idx = std::min((size_t)std::ceil(1.0 * rs.size() * this->cl), rs.size() - 1);
+    size_t idx = std::min((size_t)std::ceil(1.0 * rs.size() * cl), rs.size() - 1);
     
     double rc = rs.at(idx);
 
@@ -156,7 +156,7 @@ double LikelihoodRatio::get_critical_ratio(std::vector<double> params) {
 
   std::cout << "converged after " << iexp << " experiments" << std::endl;
   std::sort(rs.begin(), rs.end());
-  size_t idx = std::min((size_t)std::ceil(1.0 * rs.size() * this->cl), rs.size() - 1);
+  size_t idx = std::min((size_t)std::ceil(1.0 * rs.size() * cl), rs.size() - 1);
   return rs[idx];
 }
 
