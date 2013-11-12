@@ -3,7 +3,7 @@
 
 #include <utility>
 #include <string>
-#include <aurore/neyman.h>
+#include <aurore/interval.h>
 
 namespace aurore {
   class LikelihoodSpace;
@@ -11,10 +11,10 @@ namespace aurore {
     namespace bayesian {
 
 /** Project the space onto the dimension of interest and integrate. */
-class Central : public NeymanInterval {
+class Central : public Interval {
   public:
     Central(float _cl, LikelihoodSpace* _likelihood_space)
-        : NeymanInterval(_cl, _likelihood_space) {}
+        : Interval(_cl, _likelihood_space) {}
     virtual ~Central() {}
 
     virtual std::pair<double, double> operator()(std::string param);

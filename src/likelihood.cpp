@@ -77,6 +77,12 @@ std::vector<double> LikelihoodSpace::get_best_fit(double& nll) {
   return this->best_fit.first;
 }
 
+
+std::vector<double> LikelihoodSpace::get_best_fit() {
+  return this->best_fit.first;
+}
+
+
 TH1F* LikelihoodSpace::get_projection(std::string name, std::string cut) {
   int default_nbins = 100;
   gEnv->GetValue("Hist.Binning.1D.x", default_nbins);

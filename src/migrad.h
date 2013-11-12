@@ -12,15 +12,17 @@ class Dataset;
 class MigradFCN : public ROOT::Minuit2::FCNBase {
   public:
     MigradFCN(Fitter* _fitter, Dataset* _data)
-        : fitter(_fitter), data(_data) {}
+        : fitter(_fitter), data(_data), error_def(0.5) {}
 
     double operator()(const std::vector<double>& params) const;
 
-    double Up() const { return 0.5; }
+    double Up() const { return error_def; }
+    void SetErrorDef(double def) { error_def = def; }
 
   protected:
     Fitter* fitter;
     Dataset* data;
+    double error_def;
 };
 
 }  // namespace aurore

@@ -1,7 +1,7 @@
 CFLAGS = $(shell root-config --cflags) -I../../include
 LFLAGS = $(shell root-config --libs) -lMinuit2 -L../../lib -laurore
 CCFLAGS = -Wno-deprecated-declarations
-CC = g++
+CC = g++ -g
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:%.cpp=%.o)
 EXE = test

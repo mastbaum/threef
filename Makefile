@@ -1,7 +1,7 @@
 CFLAGS = -Iinclude $(shell root-config --cflags)
 LFLAGS = $(shell root-config --libs) -lMinuit2
 CCFLAGS = -Wno-deprecated-declarations
-CC = g++
+CC = g++ -g
 OBJ_DIR = build
 SOURCES := $(shell find ./src -name '*.cpp')
 OBJECTS = $(SOURCES:src/%.cpp=$(OBJ_DIR)/%.o)

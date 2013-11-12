@@ -54,8 +54,11 @@ class LikelihoodSpace {
       return this->param_names;
     }
 
-    /** Get the parameters for the maximum L point. */
+    /** Get the parameters and value for the maximum L point. */
     std::vector<double> get_best_fit(double& nll);
+
+    /** Get the parameters for the maximum L point. */
+    std::vector<double> get_best_fit();
 
     /**
      * Get a projection.

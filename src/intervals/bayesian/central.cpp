@@ -5,7 +5,7 @@
 #include <vector>
 #include <TH1F.h>
 #include <aurore/likelihood.h>
-#include <aurore/neyman.h>
+#include <aurore/interval.h>
 #include <aurore/intervals/bayesian/central.h>
 
 namespace aurore {

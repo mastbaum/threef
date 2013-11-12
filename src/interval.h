@@ -6,11 +6,11 @@ namespace aurore {
 class LikelihoodSpace;
 
 /** Abstract base for interval-computing functors. */
-class NeymanInterval {
+class Interval {
   public:
-    NeymanInterval(float _cl, LikelihoodSpace* _likelihood_space)
+    Interval(float _cl, LikelihoodSpace* _likelihood_space)
         : cl(_cl), likelihood_space(_likelihood_space) {}
-    virtual ~NeymanInterval() {}
+    virtual ~Interval() {}
 
     virtual std::pair<double, double> operator()(std::string param) = 0;
 
